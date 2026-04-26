@@ -4,7 +4,7 @@ from notifier import send_score_update
 
 BASE_URL = "https://statsapi.mlb.com/api/v1"
 # TODO: Future functionality can have the team ID in the config if other teams become important
-TEAM_ID = 121
+TEAM_ID = 147
 
 # {'Athletics': 133,
 #  'Pittsburgh Pirates': 134,

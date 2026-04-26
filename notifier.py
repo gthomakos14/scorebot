@@ -11,11 +11,10 @@ def send_score_update(home_team: str,
                       away_score: int,
                       inning: str,
                       description: str) -> bool:
-    msg = f"""{away_team} {away_score} — {home_score} {home_team}
+    # TODO: This message format can be improved. Maybe try discord embeds next?
+    msg = f"""```{away_team} {away_score} — {home_score} {home_team}
 {inning}
-{'~'*8}
-{description}
-{'~'*8}"""
+{description}```"""
     payload = {
         "content": msg
     }

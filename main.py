@@ -7,10 +7,13 @@ from notifier import send_error
 def main():
     tracker = Tracker()
     # TODO: Have smarter functionality for making this go dormant
-    while True:
+    counter = 0
+    while counter < 300:
         try:
             tracker.refresh_scoring_plays()
-            print(f'{dt.datetime.now()} ~~~ Checking again in 1 minute')
+            if counter % 5 == 0:
+                print(f'{dt.datetime.now()} ~~~ Still checking, next message in 5 minutes')
+            counter += 1
             time.sleep(60)
         except Exception as e:
             send_error(e)
