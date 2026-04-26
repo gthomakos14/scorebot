@@ -1,5 +1,6 @@
 import requests
 from datetime import date
+from notifier import send_score_update
 
 BASE_URL = "https://statsapi.mlb.com/api/v1"
 # TODO: Future functionality can have the team ID in the config if other teams become important
@@ -18,21 +19,52 @@ class Tracker:
             body = result.json()
             try:
                 # TODO: This does not support double headers
-                game_pk = body['dates'][0]['games'][0]['gamePk']
-                return game_pk
+                self.game_pk = body['dates'][0]['games'][0]['gamePk']
             except (KeyError, IndexError):
-                return None
+                self.game_pk = None
         self.game_status = 'INACTIVE'
         self.scoring_plays = []
 
 
-    def get_game_pk(self):
-        return self.game_pk
+    def refresh_scoring_plays(self):
+        new_scoring_plays = self.fetch_scoring_plays()
+        if new_scoring_plays != self.scoring_plays:
+            # Converting to set makes the lookup faster
+            existing_scoring_plays = set(self.scoring_plays)
+            result = [i for i in new_scoring_plays if i not in existing_scoring_plays]
+            for play in result:
+                send_score_update(home_team=play['home_abbreviation'],
+                                  home_score=play['home_score'],
+                                  away_team=play['away_abbreviation'],
+                                  away_score=play['away_score'],
+                                  inning=f"{play['inning_half'].capitalize()} {play['inning']}",
+                                  description=play['description'])
+
+            self.scoring_plays = new_scoring_plays
+
+
+    def fetch_scoring_plays(self):
+        """Returns all scoring plays from the live feed"""
+        url = f"https://statsapi.mlb.com/api/v1.1/game/{self.game_pk}/feed/live"
+        data = requests.get(url).json()
+
+        all_plays = data["liveData"]["plays"]["allPlays"]
+
+        return [
+            {
+                "home_abbreviation": data['gameData']['teams']['home']['abbreviation'],
+                "away_abbreviation": data['gameData']['teams']['away']['abbreviation'],
+                "description": play["result"]["description"],
+                "event": play["result"]["event"],
+                "away_score": play["result"]["awayScore"],
+                "home_score": play["result"]["homeScore"],
+                "inning": play["about"]["inning"],
+                "inning_half": play["about"]["halfInning"],
+                "play_index": play["about"]["atBatIndex"],
+            }
+            for play in all_plays
+            if play["about"]["isScoringPlay"]
+        ]
     
 
-    def get_scoring_plays(self):
-        return self.scoring_plays
-    
-
-    def set_scoring_plays(self, new_scoring_plays):
-        self.scoring_plays = new_scoring_plays
+   
