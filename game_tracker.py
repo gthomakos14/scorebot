@@ -22,6 +22,7 @@ class Tracker:
                 self.game_pk = body['dates'][0]['games'][0]['gamePk']
             except (KeyError, IndexError):
                 self.game_pk = None
+        # TODO: Build out the functionality around game status
         self.game_status = 'INACTIVE'
         self.scoring_plays = []
 

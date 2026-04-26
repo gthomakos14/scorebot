@@ -5,6 +5,7 @@ import datetime as dt
 
 def main():
     tracker = Tracker()
+    # TODO: Have smarter functionality for making this go dormant
     while True:
         tracker.refresh_scoring_plays()
         print(f'{dt.datetime.now()} ~~~ Checking again in 1 minute')
