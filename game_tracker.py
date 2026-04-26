@@ -51,6 +51,7 @@ class Tracker:
             try:
                 # TODO: This does not support double headers
                 self.game_pk = body['dates'][0]['games'][0]['gamePk']
+                print(f'Current game PK is {self.game_pk}')
             except (KeyError, IndexError):
                 self.game_pk = None
         # TODO: Build out the functionality around game status
@@ -61,9 +62,7 @@ class Tracker:
     def refresh_scoring_plays(self):
         new_scoring_plays = self.fetch_scoring_plays()
         if new_scoring_plays != self.scoring_plays:
-            # Converting to set makes the lookup faster
-            existing_scoring_plays = set(self.scoring_plays)
-            result = [i for i in new_scoring_plays if i not in existing_scoring_plays]
+            result = [i for i in new_scoring_plays if i not in self.scoring_plays]
             for play in result:
                 send_score_update(home_team=play['home_abbreviation'],
                                   home_score=play['home_score'],

@@ -13,8 +13,9 @@ def send_score_update(home_team: str,
                       description: str) -> bool:
     msg = f"""{away_team} {away_score} — {home_score} {home_team}
 {inning}
-{'~'*15}
-{description}"""
+{'~'*8}
+{description}
+{'~'*8}"""
     payload = {
         "content": msg
     }
@@ -24,5 +25,5 @@ def send_score_update(home_team: str,
 
 
 def send_error(error):
-    response = requests.post(DISCORD_URL, json={"content": error})
+    response = requests.post(DISCORD_URL, json={"content": str(error)})
     return response.status_code == 204
