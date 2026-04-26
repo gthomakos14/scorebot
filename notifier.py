@@ -21,3 +21,8 @@ def send_score_update(home_team: str,
 
     response = requests.post(DISCORD_URL, json=payload)
     return response.status_code == 204
+
+
+def send_error(error):
+    response = requests.post(DISCORD_URL, json={"content": error})
+    return response.status_code == 204
