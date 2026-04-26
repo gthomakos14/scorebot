@@ -38,25 +38,12 @@ TEAM_ID = 147
 #  'New York Mets': 121}
 
 class Tracker:
-    def __init__(self, game_pk=None):
-        if game_pk is not None:
-            self.game_pk = game_pk
-        else:
-            today = date.today().strftime("%Y-%m-%d")
-            url = f"{BASE_URL}/schedule?sportId=1&teamId={TEAM_ID}&date={today}"
-            result = requests.get(url)
-            assert result.status_code == 200, f'Status code on game Pk fetch was {result.status_code}'
-
-            body = result.json()
-            try:
-                # TODO: This does not support double headers
-                self.game_pk = body['dates'][0]['games'][0]['gamePk']
-                print(f'Current game PK is {self.game_pk}')
-            except (KeyError, IndexError):
-                self.game_pk = None
+    def __init__(self):
+        self.game_pk = self.fetch_game_pk()
+        print(f'Current game PK is {self.game_pk}')
         # TODO: Build out the functionality around game status
         self.game_status = 'INACTIVE'
-        self.scoring_plays = []
+        self.scoring_plays = self.fetch_scoring_plays()
 
 
     def refresh_scoring_plays(self):
@@ -72,6 +59,20 @@ class Tracker:
                                   description=play['description'])
 
             self.scoring_plays = new_scoring_plays
+
+
+    def fetch_game_pk(self):
+        today = date.today().strftime("%Y-%m-%d")
+        url = f"{BASE_URL}/schedule?sportId=1&teamId={TEAM_ID}&date={today}"
+        result = requests.get(url)
+        assert result.status_code == 200, f'Status code on game Pk fetch was {result.status_code}'
+
+        body = result.json()
+        try:
+            # TODO: This does not support double headers
+            return body['dates'][0]['games'][0]['gamePk']
+        except (KeyError, IndexError):
+            return None
 
 
     def fetch_scoring_plays(self):
