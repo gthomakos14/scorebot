@@ -41,13 +41,32 @@ class Tracker:
     def __init__(self):
         self.game_pk = self.fetch_game_pk()
         print(f'Current game PK is {self.game_pk}')
-        # TODO: Build out the functionality around game status
-        self.game_status = 'INACTIVE'
-        self.scoring_plays = self.fetch_scoring_plays()
+        self.game_status = None
+        self.scoring_plays = []
+        self.refresh()
 
 
-    def refresh_scoring_plays(self):
-        new_scoring_plays = self.fetch_scoring_plays()
+    def refresh(self):
+        data = self.fetch_game_data()
+        self._refresh_status(data)
+        self._refresh_scoring_plays(data)
+
+
+    def fetch_game_data(self):
+        url = f"https://statsapi.mlb.com/api/v1.1/game/{self.game_pk}/feed/live"
+        data = requests.get(url).json()
+
+        return data
+    
+
+    def _refresh_status(self, data):
+        # Possible values: Final, Live, Preview
+        game_status = data["gameData"]["status"]["abstractGameState"]
+        self.game_status = game_status.upper()
+
+
+    def _refresh_scoring_plays(self, data):
+        new_scoring_plays = self.parse_scoring_plays(data)
         if new_scoring_plays != self.scoring_plays:
             result = [i for i in new_scoring_plays if i not in self.scoring_plays]
             for play in result:
@@ -59,6 +78,7 @@ class Tracker:
                                   description=play['description'])
 
             self.scoring_plays = new_scoring_plays
+
 
 
     def fetch_game_pk(self):
@@ -75,11 +95,8 @@ class Tracker:
             return None
 
 
-    def fetch_scoring_plays(self):
+    def parse_scoring_plays(self, data):
         """Returns all scoring plays from the live feed"""
-        url = f"https://statsapi.mlb.com/api/v1.1/game/{self.game_pk}/feed/live"
-        data = requests.get(url).json()
-
         all_plays = data["liveData"]["plays"]["allPlays"]
 
         return [
